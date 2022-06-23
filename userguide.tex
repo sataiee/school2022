@@ -1,0 +1,404 @@
+\documentclass[14pt]{scrartcl}
+\usepackage{minted}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks = true,
+            linkcolor = blue,
+            urlcolor  = blue,
+            citecolor = blue,
+            anchorcolor = blue]{hyperref} 
+\usepackage[a4paper,
+            bindingoffset=0.1in,
+            left=0.6in,
+            right=0.6in,
+            top=0.6in,
+            bottom=0.6in,
+            footskip=0.2in]{geometry}            
+\usepackage{graphics,graphicx,rotating}
+\usepackage{amssymb,amsmath} 
+\usepackage{verbatimbox,xcolor}
+%\usepackage[utf8]{inputenc}
+\usepackage{multicol}
+\usepackage{sectsty}
+
+\definecolor{cverbbg}{gray}{0.93}
+\definecolor{seccolor}{RGB}{161, 29, 58}
+\definecolor{subseccolor}{RGB}{92, 158, 17}
+
+\sectionfont{\color{seccolor}}
+\subsectionfont{\color{subseccolor}}
+\parskip = 0.4\baselineskip
+
+
+\title{{\large Hand-out for the third session} \\ Hydrodynamic modelling of planet-disk interaction and planet migration}
+\author{\large Sareh Ataiee}
+\date{}
+
+\begin{document}
+\maketitle
+
+For this session, we will employ the grid-based MHD code \texttt{FARGO3D} and plot the outputs using the small package \texttt{fargo3dplot}. You are supposed to have a working C compiler and a Python3 installation along with the standard scientific python packages such as \texttt{numpy} and \texttt{matplotlib}.  You are highly recommand to install \href{https://www.anaconda.com/}{\texttt{Anaconda}} because we would also need  \texttt{IPython} for plotting.
+
+\section{What you need to do before coming to the session} \label{sec:before}
+\subsection{Installing \texttt{FARGO3D}} \label{fargo3d}
+
+If you are one of those who carefully read the manual before using an application, please visit \href{http://fargo.in2p3.fr/}{the main page of the code}, where you find some information about the code features and learn about the legacy versions. But if you have no time for details, you can directly clone the repository. 
+	
+First of all, type the below lines in a terminal to make a directory named \texttt{fargo3d} in your \verb!$HOME!, navigate to it, and clone the repository.	
+\begin{minted}[bgcolor=olive!10]{bash}
+mkdir fargo3d
+cd fargo3d
+git clone https://bitbucket.org/fargo3d/public.git
+\end{minted}
+
+Now you should see the code directories in \verb!$HOME/fargo3d/public!. \href{http://fargo.in2p3.fr/manuals/FARGO3DUserGuide.pdf}{Here} is the code's user guide in pdf. Please check it out and try to compile and do the first run as is explained in the manula. After the first run, it is recommanded to read a little about the structure of the code in the third chapter. 
+
+It is more convenient to make a small modification in the source code to have equal number of lines in the output files of the planets, namely \texttt{orbit\%n.dat} which keeps the orbital parameters of the \texttt{n}th planet, \texttt{bigplanet\%n.dat} that contains the position and velocity of the planet, and \texttt{tqwk\%n.dat} which keeps the disc torque and power on the planet. To do so, 
+\begin{itemize}
+    \item open the file \texttt{output.c} in the \texttt{src} directory with your favourite editor,
+    \item go to line 198, where you see \texttt{WriteTorqueAndWork(t, i);},
+    \item insert a new line above it and add the if condition \mintinline{c}|if (big == YES)|. You would have something like
+	\begin{minted}[bgcolor=olive!10]{c}
+if (big == YES)
+    WriteTorqueAndWork(t, i);
+	\end{minted}
+	\item save the file and exit.
+\end{itemize} 
+\noindent Now you can compile and run the code :-)
+
+\subsection{Using \texttt{fargo3dplot}} \label{fargo3dplot}	
+There are different ways to visualise the outputs of the code. You can use the python scripts that comes with \texttt{FARGO3D} and is in the \texttt{utils} directory, write your own script in any language you prefer, or download the tiny \texttt{fargo3dplot} package which will be used in the remaining of this manuscript. Preferring the later, please clone the package in your \texttt{fargo3d} directory via
+\begin{minted}[bgcolor=olive!10]{bash}
+git clone https://github.com/sataiee/fargo3dplot.git
+\end{minted}
+	Then, add the address of \texttt{fargo3dplot} to your \verb!$PYTHONPATH! to ease importing the package in \texttt{IPython}. For example, in case of using a bash shell, you need to add the below line to your \verb!$HOME/.bashrc! file:
+\begin{minted}[bgcolor=olive!10]{bash}
+export PYTHONPATH="$HOME/fargo3d:PYTHONPATH"
+\end{minted} 
+%$
+After that, either open a new shell or type \mintinline{bash}|source $HOME/.bashrc|\footnote{If you are using \texttt{spyder}, you need to add this path via \texttt{Tools-> PYTHONPATH manager.}}. %$
+Now, if you type \mintinline{python}|from fargo3dplot import *|, in your favourite \texttt{IPython} environment (such as \texttt{ipython console, spyder}, or \texttt{Jupyter-notebook}), the package should be imported without any problem.
+
+This package has only two main files containing a \texttt{PlotField} function. You can check it out by typing 
+\begin{minted}[bgcolor=olive!10]{bash}
+? PlotField
+\end{minted}
+in your \texttt{IPython} environment. There are also a couple of classes named \texttt{Grid, ReadField} and \texttt{ReadPlanet}. Their description can be seen either by typing  \texttt{? <name>} where \verb!<name>! is the name of the class or a class's method, or simply reading the file \texttt{classes.py} in the \texttt{fargo3dplot} directory. 
+
+
+\section{What you would do during the hand-out session} \label{sec:during}
+In the hand-out session, we will play a bit with \texttt{FARGO3D} to understand how the torque on a planet and the disc surface density change in different conditions. If you have more than a free core on your computer, it would be faster to run the code in parallel (it would need openMPI though), otherwise you can go on with the sequential run. In case the simulation takes very long on a single core, you can download all outputs for this session from \href{https://fumdrive.um.ac.ir/index.php/s/ac6t3bdYtZZqjTi}{here}. 
+
+\subsection{Making a setup} \label{subsec:setup}
+For each exercise, we need to make a setup. It is easiest to copy one of the setup directories and then change it as you want. Type the below lines in your terminal to make a setup named \texttt{test1}.
+\begin{minted}[bgcolor=olive!10]{bash}
+cd ~/fargo3d/public/setups/  # Navigate to the setup directory
+cp -r fargo/ test1           # Copy the fargo directory as test1
+cd test1                     # Enter test1
+# Rename the files names to the corresponding setup name
+for i in fargo.*; do mv $i test1."${i#*.}"; done  
+\end{minted}
+
+Now, we need to modify some of the files inside the \texttt{test1} directory.
+\begin{itemize}
+    \item In the \texttt{test1.par} file, we change the name of the setup and the output directory to \texttt{test1}. So, we would have 
+    \begin{minted}[bgcolor=olive!10]{bash}
+Setup                   test1
+OutputDir               @outputs/test1
+    \end{minted}
+    \item In the \texttt{test1.opt} file, we should have the following options activated
+    \begin{minted}[bgcolor=olive!10]{bash}
+MONITOR_Y_RAW  = TORQ
+FARGO_OPT += -DLEGACY
+	\end{minted}
+The first line dump the monitoring file for the torque density on the planet, and the second line tells the code to output the legacy files such as \texttt{orbitn.dat}, \texttt{bigplanetn.dat}, and \texttt{tqwkn.dat}, where \texttt{n=0,1,2,...} represents the index of the planets.
+\end{itemize} 
+
+\subsection{Lindblad torque} \label{subsec:lindblad}
+In this exercise, we aim to measure only the Lindblad torque on a Super-Earth. Therefore, we need vanishing the co-rotation torque on the planet. Therefore, we make a disc with (almost) zero vortensity gradient. For the moment, we do not allow the planet to migrate because the Lindblad torque may differ as the planet moves in the disc. To make such a setup:
+\begin{itemize}
+	\item Make a setup named \texttt{lindblad} as explained in Sec.~\ref{subsec:setup}.
+	\item In the \texttt{.opt} file: replace the \texttt{FARGO\_OPT += -DVISCOSITY}  by \texttt{FARGO\_OPT += -DALPHAVISCOSITY}.
+	\item In the \texttt{.par} file:
+	\begin{enumerate}
+	\item replace the parameter \texttt{NU} by \texttt{ALPHA} and set its value to \texttt{1e-4},
+	\item set the value of \texttt{SigmaSlope} to \texttt{1.5}
+	\item set the values of \texttt{FlaringIndex} to \texttt{0.5},
+	\item set the \texttt{PlanetConfig} to \texttt{planets/SuperEarth.cfg}, that contains a non-migrating planet with planet-to-star mass ratio $q=10^{-5}$,
+	\item make sure \texttt{Ntot} equals to \texttt{1000},
+	\item add the below line to have logarithmic spacing,
+	\begin{minted}[bgcolor=olive!10]{bash}
+Spacing             Log
+	\end{minted}
+	This gives a better resolution in the inner part of the disc where the planet is located.
+    \end{enumerate} 
+\end{itemize}
+
+Navigate to the \texttt{$\sim$/fargo3d/public} directory via \mintinline{bash}{cd ../../; pwd}. Compile and run the code on 4 cores through
+\begin{minted}[bgcolor=olive!10]{bash}
+make SETUP=lindblad PARALLEL=1
+mpirun -np 4 ./fargo3d -m setup/lindblad/lindblad.par
+\end{minted}
+If you prefer a serial run, use the below commands instead
+\begin{minted}[bgcolor=olive!10]{bash}
+make SETUP=lindblad PARALLEL=0
+./fargo3d setup/lindblad/lindblad.par
+\end{minted}
+
+
+After you get message of \texttt{End of the simulation!}, assuming that you already have imported \texttt{fargo3dplot} in your IPython console, type below lines to see the surface density and its perturbation, radial velocity, and azimuthal velocity. It's better to save each figure in a proper location for future reference.
+\begin{minted}[bgcolor=olive!10]{python}
+cd ~/fargo3d/public/
+main_dir = "outputs/lindblad"
+# Making the figure and axes
+fig, ax = plt.subplots(ncols=2, nrows=2, figsize=(12,6))
+fig.subplots_adjust(top=0.966, bottom=0.099, left=0.055, \
+ right=0.965, hspace=0.257, wspace=0.182)
+# Plot the surface density
+PlotField(directory=main_dir, field='dens', nout=30, \ 
+ fig=fig, ax=ax[0,0], cblabel=True, cbar=True, settitle=False,\ 
+ vmin=1e-4, vmax=2e-3)
+# Plot the surface density perturbation
+PlotField(directory=main_dir, field='dens', nout=30, \
+ fig=fig, ax=ax[0,1], perturbation=True, settitle=False, \
+ vmin=-0.2, vmax=0.2)
+# Plot the azimuthal velocity
+PlotField(directory=main_dir, field='vx', nout=30, \ 
+ fig=fig, ax=ax[1,0], settitle=False)
+# Plot the radial velocity
+PlotField(directory=main_dir, field='vy', nout=30, \
+ fig=fig, ax=ax[1,1], settitle=False)
+\end{minted}
+
+\textcolor{red}{Q}: What are the main features? Could you guess what happens around the co-rotation region?
+
+Let's plot the torque and torque density on the planet. 
+\begin{minted}[bgcolor=olive!10]{python}
+# Reading the grid
+grid = Grid(main_dir)
+# Reading the planet's data
+pl0 = ReadPlanet(main_dir, nplanet=0)
+# Fig. 1: total torque
+fig1, ax1 = plt.subplots()
+torq = pl0.GiveTorquePower()[0]
+ax1.plot(pl0.time, torq)
+ax1.set_xlabel(r'$time\ \rm [year]$')
+ax1.set_ylabel(r'$\Gamma\ \rm [code\ unit]$')
+# Fig. 2: torque density vs distance from the planet
+H  = 0.05* (grid.ymid)**1.5
+fig2, ax2 = plt.subplots()
+for i in range(0,50,10):
+    torq_dens = pl0.GiveTorqueDensity(i, grid.ny)
+    t_index = np.argmax(pl0.time >= i)
+    ax2.plot((grid.ymid-pl0.semi[t_index])/H, torq_dens, \
+     label=r'$n_{{\rm out}}={}$'.format(i))
+ax2.set_xlabel(r'$(r-r_{p})/H$')
+ax2.set_ylabel(r'$d\Gamma/dr\ \rm [code\ unit]$')
+ax2.set_xlim([-7,7])
+ax2.legend()
+\end{minted}
+
+\textcolor{red}{Q}: Try to find from what distance the main torque comes from? Which peak is closer to the planet and which one has a larger amplitude?
+
+\textcolor{red}{Q}: Double the resolution by increasing \texttt{Nx} to \texttt{768} and \texttt{Ny} to \texttt{256}. It is better to make a separate setup for example named \texttt{lindblad\_high} for storing the data. Make and repeat the simulation. How do the results differ than the low resolution run?
+
+\subsection{Migration} \label{subsec:migrating}	
+Make another setup named \texttt{migration} similar to the setup previous exercise except that in the \texttt{planets/SuperEarth.cfg} file, set \texttt{Feels Disk} to \texttt{Yes}. This tells the code to apply the acceleration from the disc on the planet. Make and run again until the simulation is over and make the below plot
+\begin{minted}[bgcolor=olive!10]{python}
+# Reading the planet's data
+main_dir = "outputs/migration"
+pl0 = ReadPlanet(main_dir, nplanet=0)
+# Fig. 3: migration of the planet
+fig3, ax3 = plt.subplots()
+ax3.plot(pl0.time, pl0.semi)
+ax3.set_xlabel(r'$time\ \rm [year]$')
+ax3.set_ylabel(r'$a$')
+\end{minted}
+
+\textcolor{red}{Q}: In which direction does the planet migrate? Could you approximate a migration timescale for this setup?
+
+\textcolor{red}{Q}: There are steps in the curve you just plotted. What would you suggest for having a smoother curve?
+
+\subsection{An eccentric planet} \label{subsec:ecc}	
+In this exercise, we aim to see (a)~if the torque on a non-migrating eccentric planet differs than a circular planet, and (b)~how the planet's eccentricity damps by time.
+
+To investigate the first question:
+\begin{itemize}
+	\item Make a new setup similar to Sec.~\ref{subsec:lindblad} named as \texttt{eccentric}.
+	\item In the \texttt{.par} file, set the paramter \texttt{Eccentricity} to 0.1.
+	\item Make, run, and wait until the simulation is finished.
+	\item Plot the torque against time.
+	\begin{minted}[bgcolor=olive!10]{python}
+main_dir = "outputs/eccentric/"
+# Reading the grid
+grid = Grid(main_dir)
+H  = 0.05* (grid.ymid)**1.5
+# Reading the planet's data
+pl0 = ReadPlanet(main_dir, nplanet=0)
+# Fig. 4: total torque
+fig4, ax4 = plt.subplots()
+torq = pl0.GiveTorquePower()[0]
+ax4.plot(pl0.time, torq)
+ax4.set_xlabel(r'$time\ \rm [year]$')
+ax4.set_ylabel(r'$\Gamma\ \rm [code\ unit]$')
+\end{minted}
+\end{itemize} 
+\textcolor{red}{Q}: How the torque is different compared to the one of Sec.~\ref{subsec:lindblad}? Could you propose a reason?
+
+Let's check the surface density perturbation and torque density at various times in a single orbit of the planet. The torque density is already finely sampled (every \texttt{Dt/2$\pi$}th of an orbit, here 1/20th) but the fields including surface density is saved every \texttt{Dt*Ninterm} orbit (one orbit in our setup). Therefore, we continue the simulation for one more orbit except that we dump the fields also every 1/20th of orbit. In the \texttt{.par} file change
+\begin{itemize}
+	\item \texttt{Ninterm} to \texttt{1},
+	\item \texttt{Ntot} to \texttt{71}.
+\end{itemize} 
+Save, make, and restart via 
+\begin{minted}[bgcolor=olive!10]{bash}
+make SETUP=eccentric PARALLEL=1
+mpirun -np 4 ./fargo3d -m -S 50 setups/eccentric/eccentric.par
+\end{minted}
+
+In \texttt{outputs/eccentric} directory, you should see 20 more outputs for the fields. Explicitly said, all field outputs with the number between $n_out=$~50 to 70 belongs to the $t=$~50 to 51~orbit with $\delta t=1/20$~orbit time difference between the two consecutive outputs. We now, check out the torque density and surface density perturbation at different times in an orbit.
+	\begin{minted}[bgcolor=olive!10]{python}
+main_dir = "outputs/eccentric/"
+selected_times = [50,50.25,50.5,50.75,51]
+selected_outputs = [50, 55, 60, 65, 70]
+# Reading the grid
+grid = Grid(main_dir)
+H  = 0.05* (grid.ymid)**1.5
+# Reading the planet's data
+pl0 = ReadPlanet(main_dir, nplanet=0)
+# Fig. 5: torque density vs distance from the planet at 
+# various time between 45th and 46th planet's orbital time
+fig5, ax5 = plt.subplots()
+# Fig. 6: Surface density perturbation at the same times
+fig6, ax6 = plt.subplots(ncols=5, nrows=1, figsize=(18,3))
+fig6.subplots_adjust(top=0.876, bottom=0.198, left=0.042,\
+ right=0.968, hspace=0.257, wspace=0.28)
+for i, time_now in enumerate(selected_times):
+    torq_dens = pl0.GiveTorqueDensity(time_now, grid.ny)
+    t_index = np.argmax(pl0.time >= time_now)
+    ax5.plot((grid.ymid-pl0.semi[t_index])/H, torq_dens, \
+     label=r'$t={}, n_{{out}}={}$'.format(time_now, \
+     selected_outputs[i] ))
+    PlotField(directory=main_dir, field='dens', \
+     nout=selected_outputs[i], fig=fig6, ax=ax6[i], \
+     perturbation=True, vmin=-0.2, vmax=0.2)
+ax5.set_xlabel(r'$(r-r_{p})/H$')
+ax5.set_ylabel(r'$d\Gamma/dr\ \rm [code\ unit]$')
+ax5.set_xlim([-7,7])
+ax5.legend()
+
+\end{minted}
+
+Probing the second question needs applying the disc's force on the planet and also running for a longer time. Therefore, make a setup similar to \texttt{eccentric} and name it \texttt{eccentric\_mig}, and apply the below modifications in the setup files:
+\begin{itemize}
+	\item In the \texttt{.cfg} file, set \texttt{Feel disk} to \texttt{Yes}.
+	\item In the \texttt{.par} file, change:
+	\begin{enumerate}
+		\item \texttt{Ninterm} to \texttt{200} to have field outputs each 10~orbits and avoid making so many (useless) files,
+		\item \texttt{Ntot} to \texttt{8000}.
+	\end{enumerate}
+\end{itemize}
+Make and run the simulation!
+
+Using the below script, you can see how eccentricity damps by time.
+\begin{minted}[bgcolor=olive!10]{python}
+# Reading the planet's data
+main_dir = "outputs/eccentric_mig/"
+pl0 = ReadPlanet(main_dir, nplanet=0)
+# Fig. 7: migration and eccentricity damping of the planet
+fig7, ax7 = plt.subplots(ncols=1, nrows=2, figsize=(6,6), \
+ sharex=True)
+ax7[0].plot(pl0.time, pl0.semi)
+ax7[1].plot(pl0.time, pl0.GiveEcc())
+ax7[1].set_xlabel(r'$time\ \rm [year]$')
+ax7[0].set_ylabel(r'$a$')
+ax7[1].set_ylabel(r'$e$')
+\end{minted}
+
+\textcolor{red}{Q}: Estimate roughly the eccentricity damping and migration timescales and obtain their ratio.
+
+\subsection{A massive planet} \label{subsec:gap}
+In this exercise, we investigate how the surface density and the torque on the planet are for a massive gap-opening planet.  
+\begin{itemize}
+	\item Make a setup named \texttt{massive} similar to Sec.~\ref{subsec:lindblad}.
+	\item In the \texttt{.par} file:
+	\begin{enumerate}
+		\item change \texttt{PlanetConfig} to \texttt{planets/jupiter.cfg} in order to have a non-migrating Jupiter-mass planet,
+		\item set \texttt{Ninterm} to \texttt{200} to save space in your machine,
+		\item increase \texttt{Ntot} to \texttt{10000} because opening a gap around the planet needs time.
+	\end{enumerate}
+\end{itemize}
+Make and run!
+
+Using the script in Sec.~\ref{subsec:lindblad}, plot the 2D fields for various \texttt{nout} values and see when the gap is formed. Plotting the azimuthally averaged surface density would help to distinguish the gap depth and width. You can do it by setting the keyword \texttt{averaged=True} in the \texttt{PlotField} function, for example
+
+\begin{minted}[bgcolor=olive!10]{python}
+main_dir = "outputs/massive/"
+# Making the figure and axes
+fig8, ax8 = plt.subplots()
+# Plot the surface density for several outputs
+for i in range(0,51,5):    
+    PlotField(directory=main_dir, field='dens',  nout=i, \
+     fig=fig8, ax=ax8, averaged=True, xlog=True, ylog=True)
+\end{minted}
+
+\textcolor{red}{Q}: Plot the torque and torque density. How these quantities are different that the ones of a low-mass planet in Sec.~\ref{subsec:lindblad}?
+
+\subsection{Co-rotation torque} \label{subsec:corotation}	
+Up to now, we examined the torque on a planet in a disc with (almost) vanishing vortensity gradient, that means the torques obtained in the previous exercises were (mostly) Lindblad torque. As the final exercise, we want to see what happens if the second important torque component, the co-rotation torque, exist. 
+
+Resolving the co-rotation torque properly is tricky and computationally expensive because (a)~the half horseshoe width $x_s$ needs to be resolved at least with four radial cells, and (b)~the minimum running time is twice of the libration timescale $\tau_{\mathrm{lib}}$ which depends inversely on $x_s$. Hence, to avoid a very long running time due to the high spacial resolution and long running time, we use a more massive planet such that $x_s$ increases enough while the planet does not open a gap. Therefore, we triple the mass of the planet in Sec.~\ref{subsec:lindblad} and also increase the resolution such that we have four radial cells in every $x_s$. To see the oscillation and saturation of the co-rotation torque, we run only one simulation with a low value for the viscosity parameter, but you are highly recommanded to try also larger values.
+
+For a planet with planet-to-star mass ratio $q=3 \times 10^{-5}$, the half horseshoe width $x_s \sim 1.1 \sqrt{q/h} a_p \sim 0.027$ for a planet at $a_p=1$. The running time needs to be about $\tau_{\mathrm{lib}} \sim 8 \pi a_p/3 \Omega_p x_s  $~orbits that becomes about 300~orbits. We also modify the resolution such that we have $dr \sim x_s/4$.
+
+We make a new setup with the name of \texttt{corotation16} using the same setup in Sec.~\ref{subsec:lindblad} and apply below changes:  
+\begin{itemize}
+	\item In the \texttt{.par} file, set:
+	\begin{enumerate}
+		\item \texttt{ALPHA} to \texttt{1e-6},
+		\item \texttt{SigmaSlope} to \texttt{0.5},
+		\item \texttt{FlaringIndex} to \texttt{0.0},
+		\item \texttt{Ny} to \texttt{273},
+		\item \texttt{Ninterm} to \texttt{200},
+		\item \texttt{Ntot} to \texttt{8000}. 	
+	\end{enumerate}
+	\item In the \texttt{planets/SuperEarth.cfg} file, increase the \texttt{Mass} to \texttt{3e-5}.
+\end{itemize}
+
+Make, run, and go for a coffee/tea or a chat. It would take a bit longer than the previous exercises. If it takes very long, you can download all of the outputs from \href{https://fumdrive.um.ac.ir/index.php/s/ac6t3bdYtZZqjTi}{here}.
+
+Plot the total torque versus time and the vortensity perturbation for several outputs using the below script
+
+\begin{minted}[bgcolor=olive!10]{python}
+main_dir = "outputs/corotation16/"
+# Reading the grid
+grid = Grid(main_dir)
+# Reading the planet's data
+pl0 = ReadPlanet(main_dir, nplanet=0)
+# Fig. 9: total torque
+fig9, ax9 = plt.subplots()
+torq = pl0.GiveTorquePower()[0]
+ax9.plot(pl0.time, torq)
+ax9.set_xlabel(r'$time\ \rm [year]$')
+ax9.set_ylabel(r'$\Gamma\ \rm [code\ unit]$')
+# Fig. 10: vortensity perturbation for several snapshots
+fig10, ax10 = plt.subplots(ncols=5, nrows=1, figsize=(18,3), \
+ sharex=True, sharey=True)
+fig10.subplots_adjust(top=0.876, bottom=0.198, left=0.042,\
+ right=0.968, hspace=0.257, wspace=0.28)
+for i, nout in enumerate(range(0,41,10)):
+    # Making one figure per output
+    PlotField(directory=main_dir, field='vortensity', \
+     nout=nout, fig=fig10, ax=ax10[i], perturbation=True, \
+     vmin=-0.3, vmax=0.3, cmap='seismic', settitle=True)
+\end{minted}
+
+\textcolor{red}{Q}: Can you imply the sign of the co-rotation torque (positive or negative) for this setup?
+
+\textcolor{red}{Q}: Repeat the above procedure for \texttt{ALPHA} values of \texttt{1e-2} to observe the fully unsaturated co-rotation torque.
+
+\textcolor{green}{Note}: For the co-rotation torque to be properly calculated, we need at least 12 radial cells per horseshoe width. Performing resolution tests are always highly advised when the co-rotation torque has role in the migration of the planet.
+
+\begin{itemize}
+\item[:-)] Have fun!
+\end{itemize}
+\end{document}
