@@ -110,11 +110,11 @@ OutputDir               @outputs/test1
 MONITOR_Y_RAW  = TORQ
 FARGO_OPT += -DLEGACY
 	\end{minted}
-The first line dump the monitoring file for the torque density on the planet, and the second line tells the code to output the legacy files such as \texttt{orbitn.dat}, \texttt{bigplanetn.dat}, and \texttt{tqwkn.dat}, where \texttt{n=0,1,2,...} represents the index of the planets.
+The first line dump the monitoring file for the torque density on the planet, and the second line tells the code to output the legacy files such as \texttt{orbit\%n.dat}, \texttt{bigplanet\%n.dat}, and \texttt{tqwk\%n.dat}, where \texttt{\%n=0,1,2,...} represents the index of the planet.
 \end{itemize} 
 
 \subsection{Lindblad torque} \label{subsec:lindblad}
-In this exercise, we aim to measure only the Lindblad torque on a Super-Earth. Therefore, we need vanishing the co-rotation torque on the planet. Therefore, we make a disc with (almost) zero vortensity gradient. For the moment, we do not allow the planet to migrate because the Lindblad torque may differ as the planet moves in the disc. To make such a setup:
+In this exercise, we aim to measure only the Lindblad torque on a Super-Earth. Therefore, we need vanishing co-rotation torque on the planet. Therefore, we make an isothermal disc with (almost) zero vortensity gradient. For the moment, we do not allow the planet to migrate because the Lindblad torque may differ as the planet moves in the disc. To make such a setup:
 \begin{itemize}
 	\item Make a setup named \texttt{lindblad} as explained in Sec.~\ref{subsec:setup}.
 	\item In the \texttt{.opt} file: replace the \texttt{FARGO\_OPT += -DVISCOSITY}  by \texttt{FARGO\_OPT += -DALPHAVISCOSITY}.
@@ -202,7 +202,7 @@ ax2.legend()
 \textcolor{red}{Q}: Double the resolution by increasing \texttt{Nx} to \texttt{768} and \texttt{Ny} to \texttt{256}. It is better to make a separate setup for example named \texttt{lindblad\_high} for storing the data. Make and repeat the simulation. How do the results differ than the low resolution run?
 
 \subsection{Migration} \label{subsec:migrating}	
-Make another setup named \texttt{migration} similar to the setup previous exercise except that in the \texttt{planets/SuperEarth.cfg} file, set \texttt{Feels Disk} to \texttt{Yes}. This tells the code to apply the acceleration from the disc on the planet. Make and run again until the simulation is over and make the below plot
+Make another setup named \texttt{migration} similar to the setup of previous exercise except that in the \texttt{planets/SuperEarth.cfg} file, set \texttt{Feels Disk} to \texttt{Yes}. This tells the code to apply the acceleration from the disc on the planet. Make and run again until the simulation is over and make the below plot
 \begin{minted}[bgcolor=olive!10]{python}
 # Reading the planet's data
 main_dir = "outputs/migration"
@@ -223,7 +223,7 @@ In this exercise, we aim to see (a)~if the torque on a non-migrating eccentric p
 
 To investigate the first question:
 \begin{itemize}
-	\item Make a new setup similar to Sec.~\ref{subsec:lindblad} named as \texttt{eccentric}.
+	\item Make a new setup similar to Sec.~\ref{subsec:lindblad} named \texttt{eccentric}.
 	\item In the \texttt{.par} file, set the paramter \texttt{Eccentricity} to 0.1.
 	\item Make, run, and wait until the simulation is finished.
 	\item Plot the torque against time.
@@ -244,7 +244,7 @@ ax4.set_ylabel(r'$\Gamma\ \rm [code\ unit]$')
 \end{itemize} 
 \textcolor{red}{Q}: How the torque is different compared to the one of Sec.~\ref{subsec:lindblad}? Could you propose a reason?
 
-Let's check the surface density perturbation and torque density at various times in a single orbit of the planet. The torque density is already finely sampled (every \texttt{Dt/2$\pi$}th of an orbit, here 1/20th) but the fields including surface density is saved every \texttt{Dt*Ninterm} orbit (one orbit in our setup). Therefore, we continue the simulation for one more orbit except that we dump the fields also every 1/20th of orbit. In the \texttt{.par} file change
+Let's check the surface density perturbation and torque density at various times in a single orbit of the planet. The torque density is already finely sampled (every \texttt{Dt/2$\pi$}th of an orbit, here 1/20th, but the fields including surface density is saved every \texttt{Dt*Ninterm} orbit (one orbit in our setup). Therefore, we continue the simulation for one more orbit except that we dump the fields also every 1/20th of orbit. In the \texttt{.par} file change
 \begin{itemize}
 	\item \texttt{Ninterm} to \texttt{1},
 	\item \texttt{Ntot} to \texttt{71}.
@@ -255,7 +255,7 @@ make SETUP=eccentric PARALLEL=1
 mpirun -np 4 ./fargo3d -m -S 50 setups/eccentric/eccentric.par
 \end{minted}
 
-In \texttt{outputs/eccentric} directory, you should see 20 more outputs for the fields. Explicitly said, all field outputs with the number between $n_out=$~50 to 70 belongs to the $t=$~50 to 51~orbit with $\delta t=1/20$~orbit time difference between the two consecutive outputs. We now, check out the torque density and surface density perturbation at different times in an orbit.
+In \texttt{outputs/eccentric} directory, you should see 20 more outputs for the fields. Explicitly said, all field outputs with the number between $n_{out}=$~50 to 70 belong to $t=$~50 to 51~orbit with $\delta t=1/20$~orbit between the two consecutive outputs. Now, check out the torque density and surface density perturbation at different times in an orbit.
 	\begin{minted}[bgcolor=olive!10]{python}
 main_dir = "outputs/eccentric/"
 selected_times = [50,50.25,50.5,50.75,51]
@@ -317,7 +317,7 @@ ax7[1].set_ylabel(r'$e$')
 \textcolor{red}{Q}: Estimate roughly the eccentricity damping and migration timescales and obtain their ratio.
 
 \subsection{A massive planet} \label{subsec:gap}
-In this exercise, we investigate how the surface density and the torque on the planet are for a massive gap-opening planet.  
+In this exercise, we investigate how are the surface density and the torque on the planet for a massive gap-opening planet.  
 \begin{itemize}
 	\item Make a setup named \texttt{massive} similar to Sec.~\ref{subsec:lindblad}.
 	\item In the \texttt{.par} file:
@@ -344,13 +344,13 @@ for i in range(0,51,5):
 \textcolor{red}{Q}: Plot the torque and torque density. How these quantities are different that the ones of a low-mass planet in Sec.~\ref{subsec:lindblad}?
 
 \subsection{Co-rotation torque} \label{subsec:corotation}	
-Up to now, we examined the torque on a planet in a disc with (almost) vanishing vortensity gradient, that means the torques obtained in the previous exercises were (mostly) Lindblad torque. As the final exercise, we want to see what happens if the second important torque component, the co-rotation torque, exist. 
+Up to now, we examined the torque on a planet in an isothermal disc with (almost) vanishing vortensity gradient, that means the torques obtained in the previous exercises were (mostly) Lindblad torque. As the final exercise, we want to see what happens if the second important torque component, the co-rotation torque, exists. 
 
-Resolving the co-rotation torque properly is tricky and computationally expensive because (a)~the half horseshoe width $x_s$ needs to be resolved at least with four radial cells, and (b)~the minimum running time is twice of the libration timescale $\tau_{\mathrm{lib}}$ which depends inversely on $x_s$. Hence, to avoid a very long running time due to the high spacial resolution and long running time, we use a more massive planet such that $x_s$ increases enough while the planet does not open a gap. Therefore, we triple the mass of the planet in Sec.~\ref{subsec:lindblad} and also increase the resolution such that we have four radial cells in every $x_s$. To see the oscillation and saturation of the co-rotation torque, we run only one simulation with a low value for the viscosity parameter, but you are highly recommanded to try also larger values.
+Properly resolving the co-rotation torque is tricky and computationally expensive because (a)~the half horseshoe width $x_s$ needs to be resolved at least with four radial cells, and (b)~the minimum running time is about the libration timescale $\tau_{\mathrm{lib}}$ which depends inversely on $x_s$. Hence, to avoid a very long running time due to the high spacial resolution and long running time, we use a more massive planet such that $x_s$ increases enough while the planet does not open a gap. Therefore, we triple the mass of the planet in Sec.~\ref{subsec:lindblad} and also increase the resolution such that we have four radial cells in every $x_s$. To see the oscillation and saturation of the co-rotation torque, we run only one simulation with a low value for the viscosity parameter $\alpha$, but you are highly recommanded to try also larger values.
 
-For a planet with planet-to-star mass ratio $q=3 \times 10^{-5}$, the half horseshoe width $x_s \sim 1.1 \sqrt{q/h} a_p \sim 0.027$ for a planet at $a_p=1$. The running time needs to be about $\tau_{\mathrm{lib}} \sim 8 \pi a_p/3 \Omega_p x_s  $~orbits that becomes about 300~orbits. We also modify the resolution such that we have $dr \sim x_s/4$.
+For a planet with planet-to-star mass ratio $q=3 \times 10^{-5}$, the half horseshoe width $x_s \sim 1.1 \sqrt{q/h} a_p \sim 0.027$ for a planet at $a_p=1$. The running time needs to be about $\tau_{\mathrm{lib}} \sim 8 \pi a_p/3 \Omega_p x_s  $~orbits that becomes about 300~orbits. We also modify the resolution to have $dr \sim x_s/4$.
 
-We make a new setup with the name of \texttt{corotation16} using the same setup in Sec.~\ref{subsec:lindblad} and apply below changes:  
+Build a new setup with the name of \texttt{corotation16} using the same setup in Sec.~\ref{subsec:lindblad} and apply below changes:  
 \begin{itemize}
 	\item In the \texttt{.par} file, set:
 	\begin{enumerate}
@@ -394,9 +394,9 @@ for i, nout in enumerate(range(0,41,10)):
 
 \textcolor{red}{Q}: Can you imply the sign of the co-rotation torque (positive or negative) for this setup?
 
-\textcolor{red}{Q}: Repeat the above procedure for \texttt{ALPHA} values of \texttt{1e-2} to observe the fully unsaturated co-rotation torque.
+\textcolor{red}{Q}: Repeat above procedure for \texttt{ALPHA} values of \texttt{1e-2} to observe the fully unsaturated co-rotation torque.
 
-\textcolor{green}{Note}: For the co-rotation torque to be properly calculated, we need at least 12 radial cells per horseshoe width. Performing resolution tests are always highly advised when the co-rotation torque has role in the migration of the planet.
+\textcolor{green}{Note}: For the co-rotation torque to be properly calculated in a serious project (and not a quick exercise), we need typically 6 radial cells per horseshoe half-width. Performing resolution tests are always highly advised when the co-rotation torque has role in the migration of the planet.
 
 \begin{itemize}
 \item[:-)] Have fun!
