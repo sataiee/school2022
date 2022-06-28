@@ -225,6 +225,7 @@ To investigate the first question:
 \begin{itemize}
 	\item Make a new setup similar to Sec.~\ref{subsec:lindblad} named \texttt{eccentric}.
 	\item In the \texttt{.par} file, set the paramter \texttt{Eccentricity} to 0.1.
+	\item Make sure the planet does not feel the disc in the \texttt{.cfg} file.
 	\item Make, run, and wait until the simulation is finished.
 	\item Plot the torque against time.
 	\begin{minted}[bgcolor=olive!10]{python}
@@ -244,7 +245,7 @@ ax4.set_ylabel(r'$\Gamma\ \rm [code\ unit]$')
 \end{itemize} 
 \textcolor{red}{Q}: How the torque is different compared to the one of Sec.~\ref{subsec:lindblad}? Could you propose a reason?
 
-Let's check the surface density perturbation and torque density at various times in a single orbit of the planet. The torque density is already finely sampled (every \texttt{Dt/2$\pi$}th of an orbit, here 1/20th, but the fields including surface density is saved every \texttt{Dt*Ninterm} orbit (one orbit in our setup). Therefore, we continue the simulation for one more orbit except that we dump the fields also every 1/20th of orbit. In the \texttt{.par} file change
+Let's check the surface density perturbation and torque density at various times in a single orbit of the planet. The torque density is already finely sampled (every \texttt{Dt/2$\pi$}th of an orbit, here 1/20th), but the fields including surface density is saved every \texttt{Dt*Ninterm} orbit (one orbit in our setup). Therefore, we continue the simulation for one more orbit except that we dump the fields also every 1/20th of orbit. In the \texttt{.par} file change
 \begin{itemize}
 	\item \texttt{Ninterm} to \texttt{1},
 	\item \texttt{Ntot} to \texttt{71}.
@@ -366,7 +367,7 @@ Build a new setup with the name of \texttt{corotation16} using the same setup in
 
 Make, run, and go for a coffee/tea or a chat. It would take a bit longer than the previous exercises. If it takes very long, you can download all of the outputs from \href{https://fumdrive.um.ac.ir/index.php/s/ac6t3bdYtZZqjTi}{here}.
 
-Plot the total torque versus time and the vortensity perturbation for several outputs using the below script
+Plot the total torque versus time and the vortensity perturbation for several outputs using the below script 
 
 \begin{minted}[bgcolor=olive!10]{python}
 main_dir = "outputs/corotation16/"
@@ -392,11 +393,13 @@ for i, nout in enumerate(range(0,41,10)):
      vmin=-0.3, vmax=0.3, cmap='seismic', settitle=True)
 \end{minted}
 
+Note that vortensity \emph{perturbation} shows how vortensity is changed compared to our initial setup. Thus, it is obviously zero for $n_{\rm out}=0$.
+
 \textcolor{red}{Q}: Can you imply the sign of the co-rotation torque (positive or negative) for this setup?
 
-\textcolor{red}{Q}: Repeat above procedure for \texttt{ALPHA} values of \texttt{1e-2} to observe the fully unsaturated co-rotation torque.
+\textcolor{red}{Q}: Repeat the above procedure for \texttt{ALPHA} values of \texttt{1e-2} to observe the fully unsaturated co-rotation torque.
 
-\textcolor{green}{Note}: For the co-rotation torque to be properly calculated in a serious project (and not a quick exercise), we need typically 6 radial cells per horseshoe half-width. Performing resolution tests are always highly advised when the co-rotation torque has role in the migration of the planet.
+\textcolor{green}{Note}: For the co-rotation torque to be properly calculated in a serious project (and not a quick exercise), we need typically 6 radial cells per horseshoe half-width. Performing resolution tests are always highly advised when the co-rotation torque has a role in the migration of the planet.
 
 \begin{itemize}
 \item[:-)] Have fun!
