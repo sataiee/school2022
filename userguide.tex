@@ -29,7 +29,7 @@
 \parskip = 0.4\baselineskip
 
 
-\title{{\large Hand-on for the third session} \\ Hydrodynamic modelling of planet-disk interaction and planet migration}
+\title{{\large Hand-out for the third session} \\ Hydrodynamic modelling of planet-disk interaction and planet migration}
 \author{{\large Sareh Ataiee} \\ {\normalsize in case of a broken link please contact me on \href{mailto:sarehataiee@um.ac.ir}{sarehataiee@um.ac.ir}} }
 \date{}
 
@@ -114,7 +114,7 @@ The first line dump the monitoring file for the torque density on the planet, an
 \end{itemize} 
 
 \subsection{Lindblad torque} \label{subsec:lindblad}
-In this exercise, we aim to measure only the Lindblad torque on a Super-Earth. Therefore, we need vanishing co-rotation torque on the planet. Therefore, we make an isothermal disc with (almost) zero vortensity gradient. For the moment, we do not allow the planet to migrate because the Lindblad torque may differ as the planet moves in the disc. To make such a setup:
+In this exercise, we aim to measure only the Lindblad torque on a Super-Earth. Therefore, we need vanishing co-rotation torque on the planet or, in other words, we need an isothermal disc with (almost) zero vortensity gradient. For the moment, we do not allow the planet to migrate because the Lindblad torque may differ as the planet moves in the disc. To make such a setup:
 \begin{itemize}
 	\item Make a setup named \texttt{lindblad} as explained in Sec.~\ref{subsec:setup}.
 	\item In the \texttt{.opt} file: replace the \texttt{FARGO\_OPT += -DVISCOSITY}  by \texttt{FARGO\_OPT += -DALPHAVISCOSITY}.
